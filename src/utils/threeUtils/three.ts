@@ -26,6 +26,7 @@ export class Three3D {
   private readonly id: string;
   labelRenderer: any;
   css3Renderer: any;
+  private filterMaterial!: THREE.ShaderMaterial;
   constructor(id: string) {
     this.id = id;
     this.dome = document.querySelector(`#${id}`);
@@ -70,6 +71,15 @@ export class Three3D {
     this.scene.add(this.modelGroup);
     // 动画
     this.ActionsMixer = new Map<string, THREE.AnimationMixer[]>();
+
+    this.filterMaterial = new THREE.ShaderMaterial({
+      // ... 其他设置
+      lights: false,  // 关键：不参与光照计算
+      transparent: true,
+      side: THREE.BackSide,
+      depthWrite: false,
+      depthTest: false
+    });
   }
   // 光源添加须在渲染之前，因此这里手动调用
   init() {
@@ -100,11 +110,7 @@ export class Three3D {
     this.addScene(mesh);
   }
 
-//创建一个EffectComposer
-// 添加渲染效果（LJK）
- addEffectComposer() {
-    this.effectComposer();
-  }
+  
 
   // 添加到场景
   addScene(mesh: any) {
@@ -165,17 +171,97 @@ export class Three3D {
     composer.addPass(new RenderPass(this.scene, this.camera));
   }
 
+  // 鼠标点击事件处理
   private onMouseClick = (event: any) => {
     event.preventDefault();
-    const raycaster = new Raycaster(event, this.camera).init();
-    const intersects = raycaster.intersectObjects(this.scene.children);
-    const selected = intersects[0]; //intersects是射线沿着摄像机机镜头的方向穿过的所有物体，这里取第一个物体
-    const x = Math.floor(selected.point.x * 100) / 100;
-    // const y = Math.floor(selected.point.y * 100) / 100;
-    const z = Math.floor(selected.point.z * 100) / 100;
-    console.log("x:" + x + ",y:" + 0.1 + ",z:" + z);
-    console.log(selected);
+    
+    // 创建射线投射器
+    const raycaster = new THREE.Raycaster();
+    
+    // 计算鼠标位置
+    const mouse = new THREE.Vector2();
+    mouse.x = (event.offsetX / this.wh!.width) * 2 - 1;
+    mouse.y = -(event.offsetY / this.wh!.height) * 2 + 1;
+    
+    // 设置射线
+    raycaster.setFromCamera(mouse, this.camera);
+    
+    // 获取所有可点击的对象（包括模型组中的对象）
+    const objectsToCheck = [
+      ...this.scene.children,
+      ...this.modelGroup.children
+    ];
+    
+    // 检测射线与对象的相交
+    const intersects = raycaster.intersectObjects(objectsToCheck, true);
+    
+    if (intersects.length > 0) {
+      const selected = intersects[0];
+      const clickedObject = selected.object;
+      
+      // 获取物体的详细信息
+      const objectInfo = this.getObjectInfo(clickedObject);
+      
+      // 在控制台中显示物体信息
+      console.log('=== 点击的物体信息 ===');
+      console.log('物体名称:', objectInfo.name);
+      console.log('物体类型:', objectInfo.type);
+      console.log('物体位置:', objectInfo.position);
+      console.log('物体旋转:', objectInfo.rotation);
+      console.log('物体缩放:', objectInfo.scale);
+      console.log('是否可见:', objectInfo.visible);
+      console.log('用户数据:', objectInfo.userData);
+      console.log('点击位置:', {
+        x: Math.floor(selected.point.x * 100) / 100,
+        y: Math.floor(selected.point.y * 100) / 100,
+        z: Math.floor(selected.point.z * 100) / 100
+      });
+      console.log('距离:', Math.floor(selected.distance * 100) / 100);
+      console.log('=====================');
+      
+      // 如果是模型组中的对象，显示额外信息
+      if (this.modelGroup.children.includes(clickedObject)) {
+        console.log('📦 这是模型组中的对象');
+      }
+      
+      // 如果是特定类型的对象，显示特殊信息
+      if (clickedObject.name === '围栏') {
+        console.log('🏗️ 这是围栏区域');
+      } else if (clickedObject.name === 'modelGroup') {
+        console.log('📁 这是模型组容器');
+      } else if (clickedObject.name === 'skyboxFilter') {
+        console.log('🌅 这是天空盒滤镜');
+      }
+      
+    } else {
+      console.log('❌ 没有点击到任何物体');
+    }
   };
+
+  // 获取物体的详细信息
+  private getObjectInfo(object: THREE.Object3D) {
+    return {
+      name: object.name || '未命名',
+      type: object.type || '未知类型',
+      position: {
+        x: Math.floor(object.position.x * 100) / 100,
+        y: Math.floor(object.position.y * 100) / 100,
+        z: Math.floor(object.position.z * 100) / 100
+      },
+      rotation: {
+        x: Math.floor(object.rotation.x * 100) / 100,
+        y: Math.floor(object.rotation.y * 100) / 100,
+        z: Math.floor(object.rotation.z * 100) / 100
+      },
+      scale: {
+        x: Math.floor(object.scale.x * 100) / 100,
+        y: Math.floor(object.scale.y * 100) / 100,
+        z: Math.floor(object.scale.z * 100) / 100
+      },
+      visible: object.visible,
+      userData: object.userData || {}
+    };
+  }
 }
 
 // 射线

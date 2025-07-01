@@ -5,6 +5,12 @@ import Card from "@/components/card/index.vue";
 import useEcharts from "@/hooks/useEcharts";
 import userEchartsData from "./hooks/useEchartsData";
 import useThree from "@/hooks/useThree";
+import MouseClickDemo from "@/components/MouseClickDemo.vue";
+import MouseClickTest from "@/components/MouseClickTest.vue";
+import FenceDemo from "@/components/FenceDemo.vue";
+
+// 当前显示的组件
+const currentComponent = ref('main'); // 'main' | 'mouseClick' | 'mouseClickTest' | 'fenceDemo'
 
 // 加载状态
 const loading = ref(true)
@@ -121,10 +127,16 @@ const clickDevice = (v: any) => {
   const {name} = v;
   location(name);
 };
+
+// 切换组件
+const switchComponent = (component: string) => {
+  currentComponent.value = component;
+};
 </script>
 
 <template>
-  <div class="layout">
+  <!-- 主应用 -->
+  <div v-if="currentComponent === 'main'" class="layout">
     <!-- <div class="head">
       <p data-text="智慧大棚数字孪生平台">智慧大棚数字孪生平台</p>
     </div> -->
@@ -256,8 +268,51 @@ const clickDevice = (v: any) => {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        
+<!--        &lt;!&ndash; 添加组件切换按钮 &ndash;&gt;-->
+<!--        <el-button type="success" @click="switchComponent('mouseClick')" style="margin-left: 10px;">-->
+<!--          鼠标点击演示-->
+<!--        </el-button>-->
+<!--        -->
+<!--        <el-button type="warning" @click="switchComponent('mouseClickTest')" style="margin-left: 10px;">-->
+<!--          鼠标点击测试-->
+<!--        </el-button>-->
+<!--        -->
+<!--        <el-button type="info" @click="switchComponent('fenceDemo')" style="margin-left: 10px;">-->
+<!--          围栏显示隐藏演示-->
+<!--        </el-button>-->
       </div>
     </div>
+
+  <!-- 鼠标点击演示 -->
+  <div v-else-if="currentComponent === 'mouseClick'">
+    <MouseClickDemo />
+    <div class="component-switcher">
+      <el-button type="primary" @click="switchComponent('main')">
+        返回主应用
+      </el-button>
+    </div>
+  </div>
+
+  <!-- 鼠标点击测试 -->
+  <div v-else-if="currentComponent === 'mouseClickTest'">
+    <MouseClickTest />
+    <div class="component-switcher">
+      <el-button type="primary" @click="switchComponent('main')">
+        返回主应用
+      </el-button>
+    </div>
+  </div>
+
+  <!-- 围栏演示 -->
+  <div v-else-if="currentComponent === 'fenceDemo'">
+    <FenceDemo />
+    <div class="component-switcher">
+      <el-button type="primary" @click="switchComponent('main')">
+        返回主应用
+      </el-button>
+    </div>
+  </div>
 </template>
 <style lang="scss" scoped>
 .three {
@@ -450,5 +505,12 @@ const clickDevice = (v: any) => {
   .el-dropdown {
     margin-left: 10px;
   }
+}
+
+.component-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
 }
 </style>

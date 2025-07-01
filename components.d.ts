@@ -7,12 +7,26 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    CameraMonitorExample: typeof import('./src/components/CameraMonitorExample.vue')['default']
+    CameraMonitorPanel: typeof import('./src/components/cameraMonitorPanel.vue')['default']
     Card: typeof import('./src/components/card/index.vue')['default']
+    ConfigPanel: typeof import('./src/components/configPanel.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElColorPicker: typeof import('element-plus/es')['ElColorPicker']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    FenceControlPanel: typeof import('./src/components/fenceControlPanel.vue')['default']
+    FenceDemo: typeof import('./src/components/FenceDemo.vue')['default']
     Loading: typeof import('./src/components/loading.vue')['default']
+    ModelLoadTest: typeof import('./src/components/ModelLoadTest.vue')['default']
+    MouseClickDemo: typeof import('./src/components/MouseClickDemo.vue')['default']
+    MouseClickTest: typeof import('./src/components/MouseClickTest.vue')['default']
+    SkyboxFilterDemo: typeof import('./src/components/SkyboxFilterDemo.vue')['default']
+    SkyboxFilterExample: typeof import('./src/components/SkyboxFilterExample.vue')['default']
+    SkyboxFilterPanel: typeof import('./src/components/skyboxFilterPanel.vue')['default']
+    SkyboxFilterTest: typeof import('./src/components/SkyboxFilterTest.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

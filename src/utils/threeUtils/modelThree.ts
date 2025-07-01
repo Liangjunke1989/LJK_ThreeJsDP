@@ -1,15 +1,16 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+import {FBXLoader} from "three/addons/loaders/FBXLoader.js";
+import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 
 interface Actions {
-  [key: string]: THREE.AnimationAction;
+    [key: string]: THREE.AnimationAction;
 }
+
 interface Vector3 {
-  x: number;
-  y: number;
-  z: number;
+    x: number;
+    y: number;
+    z: number;
 }
 
 /**
@@ -19,24 +20,24 @@ interface Vector3 {
  * @returns
  */
 export const getActions = (
-  animations: THREE.AnimationClip[],
-  model: THREE.Object3D,
+    animations: THREE.AnimationClip[],
+    model: THREE.Object3D,
 ) => {
-  const actions: Actions = {};
-  const mixerArray: THREE.AnimationMixer[] = [];
-  if (animations && animations.length > 0) {
-    const mixer: THREE.AnimationMixer = new THREE.AnimationMixer(model);
-    mixerArray.push(mixer);
-    for (let i = 0; i < animations.length; i++) {
-      const clip = animations[i];
-      const action: THREE.AnimationAction = mixer.clipAction(clip);
-      actions[clip.name] = action;
+    const actions: Actions = {};
+    const mixerArray: THREE.AnimationMixer[] = [];
+    if (animations && animations.length > 0) {
+        const mixer: THREE.AnimationMixer = new THREE.AnimationMixer(model);
+        mixerArray.push(mixer);
+        for (let i = 0; i < animations.length; i++) {
+            const clip = animations[i];
+            const action: THREE.AnimationAction = mixer.clipAction(clip);
+            actions[clip.name] = action;
+        }
     }
-  }
-  return {
-    actions,
-    mixerArray,
-  };
+    return {
+        actions,
+        mixerArray,
+    };
 };
 
 /**
@@ -49,20 +50,20 @@ export const getActions = (
  */
 
 export const playActiveAction = (
-  actions: Actions,
-  playKey: string,
-  flag: boolean = true,
-  loop: THREE.AnimationActionLoopStyles = THREE.LoopOnce,
+    actions: Actions,
+    playKey: string,
+    flag: boolean = true,
+    loop: THREE.AnimationActionLoopStyles = THREE.LoopOnce,
 ) => {
-  console.log("动画播放", actions);
+    console.log("动画播放", actions);
 
-  if (!actions) return;
-  const activeAction = actions[playKey];
-  if (!activeAction) return;
-  activeAction.clampWhenFinished = true;
-  activeAction.loop = loop;
-  activeAction.reset();
-  flag ? activeAction.fadeIn(0.1).play() : activeAction.fadeIn(0.3).stop();
+    if (!actions) return;
+    const activeAction = actions[playKey];
+    if (!activeAction) return;
+    activeAction.clampWhenFinished = true;
+    activeAction.loop = loop;
+    activeAction.reset();
+    flag ? activeAction.fadeIn(0.1).play() : activeAction.fadeIn(0.3).stop();
 };
 
 /**
@@ -72,26 +73,26 @@ export const playActiveAction = (
  * @returns
  */
 export const loadGltf = (url: string, name: string): Promise<any> => {
-  return new Promise((res, rej) => {
-    const loaderGltf = new GLTFLoader();
-    loaderGltf.load(
-      url,
-      (gltf: {
-        scene: THREE.Group<THREE.Object3DEventMap>;
-        animations: THREE.AnimationClip[];
-      }) => {
-        const { scene } = gltf;
-        scene.name = name;
-        res(gltf);
-      },
-      (xhr: ProgressEvent) => {
-        console.log("加载进度：", Math.floor((xhr.loaded / xhr.total) * 100));
-      },
-      (err: any) => {
-        rej(err);
-      },
-    );
-  });
+    return new Promise((res, rej) => {
+        const loaderGltf = new GLTFLoader();
+        loaderGltf.load(
+            url,
+            (gltf: {
+                scene: THREE.Group<THREE.Object3DEventMap>;
+                animations: THREE.AnimationClip[];
+            }) => {
+                const {scene} = gltf;
+                scene.name = name;
+                res(gltf);
+            },
+            (xhr: ProgressEvent) => {
+                console.log("加载进度：", Math.floor((xhr.loaded / xhr.total) * 100));
+            },
+            (err: any) => {
+                rej(err);
+            },
+        );
+    });
 };
 /**
  * 加载经过 Draco 压缩的 GLTF 模型
@@ -100,56 +101,66 @@ export const loadGltf = (url: string, name: string): Promise<any> => {
  * @returns {Promise<GLTF>}
  */
 export const loadLJKGltf = (url: string, name: string): Promise<any> => {
-  return new Promise((res, rej) => {
-    // 1. 初始化 DRACOLoader
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"); // 或本地路径 "draco/"
-    dracoLoader.setDecoderConfig({ type: "js" }); // 使用 JS 解码器（wasm 更快但需额外配置）
-    dracoLoader.preload(); // 预加载解码器
+    return new Promise((res, rej) => {
+        console.log(`开始加载模型: ${name}, URL: ${url}`);
 
-    // 2. 初始化 GLTFLoader 并设置 DRACOLoader
-    const loader = new GLTFLoader();
-    loader.setDRACOLoader(dracoLoader);
+        // 1. 初始化 DRACOLoader
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/"); // 或本地路径 "draco/"
+        dracoLoader.setDecoderConfig({type: "js"}); // 使用 JS 解码器（wasm 更快但需额外配置）
+        dracoLoader.preload(); // 预加载解码器
 
-    // 3. 加载模型
-    loader.load(
-        url,
-        (object: any) => {
-          object.name = name;
-          res(object);
-          console.log("LJK_模型加载完成了！！" + object.name);
-          console.log("LJK_模型加载完成时间：" + new Date().toLocaleString());
-          console.log("LJK_模型的大小为：" + object.scene.gltfExtensions.KHR_draco_mesh_compression.bufferViews.length);
-        },
-        (xhr: ProgressEvent) => {
-          console.log("加载进度：", Math.floor((xhr.loaded / xhr.total) * 100));
-        },
-        (err: any) => {
-          rej(err);
-        },
+        // 2. 初始化 GLTFLoader 并设置 DRACOLoader
+        const loader = new GLTFLoader();
+        loader.setDRACOLoader(dracoLoader);
 
-    );
-  });
+        // 3. 加载模型
+        loader.load(
+            url,
+            (object: any) => {
+                object.name = name;
+                console.log("LJK_模型加载完成了！！" + object.name);
+                console.log("LJK_模型加载完成时间：" + new Date().toLocaleString());
+
+                // 检查是否有Draco压缩
+                if (object.scene.gltfExtensions && object.scene.gltfExtensions.KHR_draco_mesh_compression) {
+                    console.log("LJK_模型的大小为：" + object.scene.gltfExtensions.KHR_draco_mesh_compression.bufferViews.length);
+                } else {
+                    console.log("模型未使用Draco压缩");
+                }
+
+                res(object);
+            },
+            (xhr: ProgressEvent) => {
+                const progress = Math.floor((xhr.loaded / xhr.total) * 100);
+                console.log(`加载进度：${progress}%`);
+            },
+            (err: any) => {
+                console.error(`模型加载失败: ${name}`, err);
+                rej(err);
+            },
+        );
+    });
 };
 
 
 export const loadFbx = (url: string, name: string): Promise<any> => {
-  return new Promise((res, rej) => {
-    const loader = new FBXLoader();
-    loader.load(
-      url,
-      (object: any) => {
-        object.name = name;
-        res(object);
-      },
-      (xhr: ProgressEvent) => {
-        console.log("加载进度：", Math.floor((xhr.loaded / xhr.total) * 100));
-      },
-      (err: any) => {
-        rej(err);
-      },
-    );
-  });
+    return new Promise((res, rej) => {
+        const loader = new FBXLoader();
+        loader.load(
+            url,
+            (object: any) => {
+                object.name = name;
+                res(object);
+            },
+            (xhr: ProgressEvent) => {
+                console.log("加载进度：", Math.floor((xhr.loaded / xhr.total) * 100));
+            },
+            (err: any) => {
+                rej(err);
+            },
+        );
+    });
 };
 
 /**查找模型
@@ -158,50 +169,50 @@ export const loadFbx = (url: string, name: string): Promise<any> => {
  * @returns
  */
 export const getModel = (name: string, scene: THREE.Scene) => {
-  return scene.getObjectByName(name);
+    return scene.getObjectByName(name);
 };
 
-// 创建面模型的材质
+//创建面模型的材质
 const createFaceMaterial = (color: string, opacity?: number) => {
-  const material = new THREE.MeshBasicMaterial({
-    color: color,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: opacity ? opacity : 1,
-  });
-  return material;
+    const material = new THREE.MeshBasicMaterial({
+        color: color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: opacity ? opacity : 1,
+    });
+    return material;
 };
 // 创建面
 export const createFace = (array: Vector3[], color: string) => {
-  const heartShape = new THREE.Shape(
-    array.map((item) => new THREE.Vector2(item.x, item.z)),
-  );
-  const geometry = new THREE.ShapeGeometry(heartShape);
-  const material = createFaceMaterial(color);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.rotation.x = Math.PI / 2;
-  return mesh;
+    const heartShape = new THREE.Shape(
+        array.map((item) => new THREE.Vector2(item.x, item.z)),
+    );
+    const geometry = new THREE.ShapeGeometry(heartShape);
+    const material = createFaceMaterial(color);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.x = Math.PI / 2;
+    return mesh;
 };
 export const setGeometryStyle = (name: string, color: string, scene: any) => {
-  const mesh = scene.scene.getObjectByName(name);
-  if (!mesh) return;
-  mesh.material = createFaceMaterial(color);
+    const mesh = scene.scene.getObjectByName(name);
+    if (!mesh) return;
+    mesh.material = createFaceMaterial(color);
 };
 
 // 创建线
 export const createLine = (coordArray: Vector3[], lineName: string = "") => {
-  const points = coordArray.map((p) => new THREE.Vector3(p.x, p.y, p.z));
-  const curve = new THREE.CatmullRomCurve3(points, false);
-  const line = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(
-      curve.getPoints(points.length * 10),
-    ),
-    new THREE.LineBasicMaterial({
-      color: 0xefffe5,
-    }),
-  );
-  line.name = lineName;
-  return line;
+    const points = coordArray.map((p) => new THREE.Vector3(p.x, p.y, p.z));
+    const curve = new THREE.CatmullRomCurve3(points, false);
+    const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(
+            curve.getPoints(points.length * 10),
+        ),
+        new THREE.LineBasicMaterial({
+            color: 0xefffe5,
+        }),
+    );
+    line.name = lineName;
+    return line;
 };
 
 /**
@@ -218,157 +229,167 @@ export const createLine = (coordArray: Vector3[], lineName: string = "") => {
  * @param {function}  callback 运行回调
  */
 export class Patrol {
-  private three3D: any;
-  private meshName: string;
-  private isFirstPerson: boolean;
-  private curvePoints: Vector3[];
-  private runGen: any;
-  private factor?: 1 | 10 | 100;
-  private rotation: Vector3 | undefined;
-  private finishCallback: Function | undefined;
-  isStop: boolean;
-  constructor(
-    params: {
-      three3D: any;
-      coordArray: Vector3[];
-      meshName?: string;
-      isFirstPerson?: boolean;
-      factor?: 1 | 10 | 100;
-      rotation?: Vector3;
-    },
-    callback?: Function,
-  ) {
-    const {
-      three3D,
-      coordArray,
-      meshName = "",
-      isFirstPerson = false,
-      factor = 1,
-      rotation,
-    } = params;
-    this.rotation = rotation;
-    this.isFirstPerson = isFirstPerson;
-    this.three3D = three3D;
-    this.meshName = meshName;
-    this.isStop = false;
-    this.factor = factor;
-    this.finishCallback = callback;
-    // 总路长
-    let distanceToPoint = 0;
-    const points = coordArray.map((p) => new THREE.Vector3(p.x, p.y, p.z));
-    points.forEach((p, i) => {
-      if (i !== 0 && points[i + 1]) {
-        distanceToPoint += p.distanceTo(points[i + 1]);
-      }
-    });
-    const curve = new THREE.CatmullRomCurve3(points, false);
-    this.curvePoints = curve.getPoints(distanceToPoint * (100 / factor));
-  }
-  init() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const vm = this;
+    private three3D: any;
+    private meshName: string;
+    private isFirstPerson: boolean;
+    private curvePoints: Vector3[];
+    private runGen: any;
+    private factor?: 1 | 10 | 100;
+    private rotation: Vector3 | undefined;
+    private finishCallback: Function | undefined;
+    isStop: boolean;
 
-    async function* stepGen() {
-      for (let i = 0; i < vm.curvePoints.length; i++) {
-        yield vm.step(vm.curvePoints, i);
-      }
-      yield false;
-    }
-    this.runGen = stepGen();
-  }
-  reset() {
-    this.runGen = null;
-    this.isStop = false;
-  }
-  stop() {
-    this.isStop = true;
-  }
-  run() {
-    if (!this.isStop && this.runGen) return;
-    if (!this.runGen) {
-      this.init();
-    }
-    this.isStop = false;
-    this.asyncGenerator(this.runGen);
-  }
-  switch(flag: boolean) {
-    this.isFirstPerson = flag;
-  }
-  private async asyncGenerator(g: any) {
-    if (this.isStop) return;
-    g.next().then((v: any) => {
-      const { done, value } = v;
-      if (!done) {
-        setTimeout(() => {
-          this.asyncGenerator(g);
-        }, 1);
-      }
-      this.finishCallback ? this.finishCallback(done, value) : null;
-    });
-  }
-  private step(point: Vector3[], i: number): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const vm = this;
-    return new Promise((res, rej) => {
-      if (!this.three3D) return rej(false);
-      try {
-        vm._runModel(point, i, res, vm);
-      } catch (err) {
-        console.log(err);
-        rej(false);
-      }
-    });
-  }
-  private _runModel(point: Vector3[], i: number, res: Function, vm: this) {
-    const lookAt = i < point.length - 11 ? point[i + 10] : point[0];
-    if (this.meshName) {
-      const model = this.three3D.scene.getObjectByName(this.meshName);
-      model.position.set(point[i].x, point[i].y, point[i].z);
-      model.lookAt(lookAt.x, lookAt.y, lookAt.z);
-      // 模型初始方向决定y轴旋转方法
-      if (this.rotation) {
-        const { x = 0, y = 0, z = 0 } = this.rotation;
-        model.rotation.x = model.rotation.x + x;
-        model.rotation.y = model.rotation.y + y;
-        model.rotation.z = model.rotation.z + z;
-      }
-
-      if (vm.isFirstPerson) {
-        this.three3D.camera.position.set(
-          point[i].x,
-          point[i].y + 1.8,
-          point[i].z,
-        );
-        this.three3D.controls.setCameraLookAt({
-          x: lookAt.x,
-          y: lookAt.y + 1.8,
-          z: lookAt.z,
+    constructor(
+        params: {
+            three3D: any;
+            coordArray: Vector3[];
+            meshName?: string;
+            isFirstPerson?: boolean;
+            factor?: 1 | 10 | 100;
+            rotation?: Vector3;
+        },
+        callback?: Function,
+    ) {
+        const {
+            three3D,
+            coordArray,
+            meshName = "",
+            isFirstPerson = false,
+            factor = 1,
+            rotation,
+        } = params;
+        this.rotation = rotation;
+        this.isFirstPerson = isFirstPerson;
+        this.three3D = three3D;
+        this.meshName = meshName;
+        this.isStop = false;
+        this.factor = factor;
+        this.finishCallback = callback;
+        // 总路长
+        let distanceToPoint = 0;
+        const points = coordArray.map((p) => new THREE.Vector3(p.x, p.y, p.z));
+        points.forEach((p, i) => {
+            if (i !== 0 && points[i + 1]) {
+                distanceToPoint += p.distanceTo(points[i + 1]);
+            }
         });
-      }
-      res(point[i]);
+        const curve = new THREE.CatmullRomCurve3(points, false);
+        this.curvePoints = curve.getPoints(distanceToPoint * (100 / factor));
     }
-  }
+
+    init() {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const vm = this;
+
+        async function* stepGen() {
+            for (let i = 0; i < vm.curvePoints.length; i++) {
+                yield vm.step(vm.curvePoints, i);
+            }
+            yield false;
+        }
+
+        this.runGen = stepGen();
+    }
+
+    reset() {
+        this.runGen = null;
+        this.isStop = false;
+    }
+
+    stop() {
+        this.isStop = true;
+    }
+
+    run() {
+        if (!this.isStop && this.runGen) return;
+        if (!this.runGen) {
+            this.init();
+        }
+        this.isStop = false;
+        this.asyncGenerator(this.runGen);
+    }
+
+    switch(flag: boolean) {
+        this.isFirstPerson = flag;
+    }
+
+    private async asyncGenerator(g: any) {
+        if (this.isStop) return;
+        g.next().then((v: any) => {
+            const {done, value} = v;
+            if (!done) {
+                setTimeout(() => {
+                    this.asyncGenerator(g);
+                }, 1);
+            }
+            this.finishCallback ? this.finishCallback(done, value) : null;
+        });
+    }
+
+    private step(point: Vector3[], i: number): Promise<boolean> {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const vm = this;
+        return new Promise((res, rej) => {
+            if (!this.three3D) return rej(false);
+            try {
+                vm._runModel(point, i, res, vm);
+            } catch (err) {
+                console.log(err);
+                rej(false);
+            }
+        });
+    }
+
+    private _runModel(point: Vector3[], i: number, res: Function, vm: this) {
+        const lookAt = i < point.length - 11 ? point[i + 10] : point[0];
+        if (this.meshName) {
+            const model = this.three3D.scene.getObjectByName(this.meshName);
+            model.position.set(point[i].x, point[i].y, point[i].z);
+            model.lookAt(lookAt.x, lookAt.y, lookAt.z);
+            // 模型初始方向决定y轴旋转方法
+            if (this.rotation) {
+                const {x = 0, y = 0, z = 0} = this.rotation;
+                model.rotation.x = model.rotation.x + x;
+                model.rotation.y = model.rotation.y + y;
+                model.rotation.z = model.rotation.z + z;
+            }
+
+            if (vm.isFirstPerson) {
+                this.three3D.camera.position.set(
+                    point[i].x,
+                    point[i].y + 1.8,
+                    point[i].z,
+                );
+                this.three3D.controls.setCameraLookAt({
+                    x: lookAt.x,
+                    y: lookAt.y + 1.8,
+                    z: lookAt.z,
+                });
+            }
+            res(point[i]);
+        }
+    }
 }
 
 export const pointInThis = (point: Vector3, pathList: Vector3[]) => {
-  const { x: px, z: py } = point;
-  let flag = false;
-  const length = pathList.length;
-  for (let i = 0, l = length, j = l - 1; i < l; j = i, i++) {
-    const { x: sx, z: sy } = pathList[i];
-    const { x: tx, z: ty } = pathList[j];
-    if ((sx === px && sy === py) || (tx === px && ty === py)) return true;
-    if (
-      sy === ty &&
-      sy === py &&
-      ((sx > px && tx < px) || (sx < px && tx > px))
-    )
-      return true;
-    if ((sy < py && ty >= py) || (sy >= py && ty < py)) {
-      const x = sx + ((py - sy) * (tx - sx)) / (ty - sy);
-      if (x === px) return true;
-      if (x > px) flag = !flag;
+    const {x: px, z: py} = point;
+    let flag = false;
+    const length = pathList.length;
+    for (let i = 0, l = length, j = l - 1; i < l; j = i, i++) {
+        const {x: sx, z: sy} = pathList[i];
+        const {x: tx, z: ty} = pathList[j];
+        if ((sx === px && sy === py) || (tx === px && ty === py)) return true;
+        if (
+            sy === ty &&
+            sy === py &&
+            ((sx > px && tx < px) || (sx < px && tx > px))
+        )
+            return true;
+        if ((sy < py && ty >= py) || (sy >= py && ty < py)) {
+            const x = sx + ((py - sy) * (tx - sx)) / (ty - sy);
+            if (x === px) return true;
+            if (x > px) flag = !flag;
+        }
     }
-  }
-  return flag ? true : false;
+    return flag ? true : false;
 };
